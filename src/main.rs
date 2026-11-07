@@ -5,7 +5,10 @@ mod config;
 
 use std::{
     collections::HashSet,
-    sync::{Mutex, OnceLock},
+    sync::{
+        atomic::{AtomicU8, Ordering},
+        Mutex, OnceLock,
+    },
     thread,
     time::Duration,
 };
@@ -15,7 +18,7 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     window::{Color, Effect, EffectsBuilder},
-    AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent,
+    AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent, Wry,
 };
 use windows::Win32::Globalization::GetUserDefaultUILanguage;
 
@@ -44,13 +47,29 @@ struct Snapshot {
     output: Vec<DeviceView>,
     auto_switch: bool,
     autostart: bool,
+    language: String,
 }
 
-/// Windows の表示言語が日本語なら日本語、それ以外は英語
+/// 言語設定。0 = 自動 (Windows の表示言語), 1 = 日本語, 2 = 英語
+static LANGUAGE: AtomicU8 = AtomicU8::new(0);
+
+fn set_language_mode(language: &str) {
+    let mode = match language {
+        "ja" => 1,
+        "en" => 2,
+        _ => 0,
+    };
+    LANGUAGE.store(mode, Ordering::Relaxed);
+}
+
 fn tr(ja: &'static str, en: &'static str) -> &'static str {
-    static JAPANESE: OnceLock<bool> = OnceLock::new();
+    static OS_JAPANESE: OnceLock<bool> = OnceLock::new();
     const LANG_JAPANESE: u16 = 0x11;
-    let japanese = *JAPANESE.get_or_init(|| unsafe { GetUserDefaultUILanguage() & 0x3ff == LANG_JAPANESE });
+    let japanese = match LANGUAGE.load(Ordering::Relaxed) {
+        1 => true,
+        2 => false,
+        _ => *OS_JAPANESE.get_or_init(|| unsafe { GetUserDefaultUILanguage() & 0x3ff == LANG_JAPANESE }),
+    };
     if japanese { ja } else { en }
 }
 
@@ -84,6 +103,7 @@ fn snapshot(state: &AppState) -> Result<Snapshot, String> {
         output: device_views(Flow::Output, &config)?,
         auto_switch: config.auto_switch,
         autostart: config::autostart_enabled(),
+        language: config.language,
     })
 }
 
@@ -133,6 +153,18 @@ async fn set_autostart(enabled: bool, state: State<'_, AppState>) -> Result<Snap
 }
 
 #[tauri::command]
+async fn set_language(language: String, app: AppHandle, state: State<'_, AppState>) -> Result<Snapshot, String> {
+    {
+        let mut config = state.config.lock().unwrap();
+        config.language = language.clone();
+        config.save();
+    }
+    set_language_mode(&language);
+    refresh_tray(&app);
+    snapshot(&state)
+}
+
+#[tauri::command]
 async fn set_volume(id: String, level: f32) -> Result<(), String> {
     audio::com_init();
     audio::set_volume(&id, level).map_err(err)
@@ -167,6 +199,23 @@ fn update_tray(app: &AppHandle, inputs: &[audio::Device], outputs: &[audio::Devi
             default_name(outputs)
         );
         let _ = tray.set_tooltip(Some(tooltip));
+    }
+}
+
+fn tray_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
+    let open = MenuItem::with_id(app, "open", tr("開く", "Open"), true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", tr("終了", "Quit"), true, None::<&str>)?;
+    Menu::with_items(app, &[&open, &quit])
+}
+
+/// 言語を変えたときにトレイのメニューとツールチップを作り直す
+fn refresh_tray(app: &AppHandle) {
+    audio::com_init();
+    if let (Some(tray), Ok(menu)) = (app.tray_by_id("main"), tray_menu(app)) {
+        let _ = tray.set_menu(Some(menu));
+    }
+    if let (Ok(inputs), Ok(outputs)) = (audio::list(Flow::Input), audio::list(Flow::Output)) {
+        update_tray(app, &inputs, &outputs);
     }
 }
 
@@ -210,16 +259,19 @@ fn spawn_watcher(app: AppHandle) {
 
 fn main() {
     let start_hidden = std::env::args().any(|arg| arg == "--hidden");
+    let config = Config::load();
+    set_language_mode(&config.language);
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| show_main(app)))
-        .manage(AppState { config: Mutex::new(Config::load()) })
+        .manage(AppState { config: Mutex::new(config) })
         .invoke_handler(tauri::generate_handler![
             get_state,
             set_default,
             toggle_star,
             set_auto_switch,
             set_autostart,
+            set_language,
             set_volume,
             set_mute
         ])
@@ -238,9 +290,7 @@ fn main() {
                 .visible(!start_hidden)
                 .build()?;
 
-            let open = MenuItem::with_id(app, "open", tr("開く", "Open"), true, None::<&str>)?;
-            let quit = MenuItem::with_id(app, "quit", tr("終了", "Quit"), true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&open, &quit])?;
+            let menu = tray_menu(app.handle())?;
             TrayIconBuilder::with_id("main")
                 .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("Mic Switch")

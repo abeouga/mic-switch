@@ -12,10 +12,11 @@ const ICONS = {
   star: '<svg viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.9z"/></svg>',
 };
 
-const TABS = {
-  input: { label: t('currentInput'), listTitle: t('inputDevices'), icon: ICONS.mic, iconOff: ICONS.micOff, empty: t('noInput') },
-  output: { label: t('currentOutput'), listTitle: t('outputDevices'), icon: ICONS.speaker, iconOff: ICONS.speakerOff, empty: t('noOutput') },
-};
+// 言語を切り替えられるよう、文言は毎回 t() で引く
+const tabMeta = (kind) =>
+  kind === 'output'
+    ? { label: t('currentOutput'), listTitle: t('outputDevices'), icon: ICONS.speaker, iconOff: ICONS.speakerOff, empty: t('noOutput') }
+    : { label: t('currentInput'), listTitle: t('inputDevices'), icon: ICONS.mic, iconOff: ICONS.micOff, empty: t('noInput') };
 
 let state = null;
 let tab = loadTab();
@@ -72,7 +73,7 @@ function notifyExternalChanges(next) {
 
 function render() {
   if (!state) return;
-  const meta = TABS[tab];
+  const meta = tabMeta(tab);
   const devices = state[tab];
   const current = currentDevice();
 
@@ -118,6 +119,7 @@ function render() {
 
   $('#autoSwitch').checked = state.autoSwitch;
   $('#autostart').checked = state.autostart;
+  document.querySelectorAll('#langMenu [data-lang]').forEach((el) => el.setAttribute('aria-checked', String(el.dataset.lang === langPref)));
 }
 
 async function call(command, args) {
@@ -126,6 +128,8 @@ async function call(command, args) {
     if (result) {
       notifyExternalChanges(result);
       state = result;
+      // 設定ファイル側の言語が正。キャッシュ (localStorage) と違えば合わせる
+      if (result.language !== langPref) setLangPref(result.language);
       render();
     }
     return result;
@@ -199,6 +203,42 @@ $('#refreshBtn').addEventListener('click', (e) => {
   void btn.offsetWidth;
   btn.classList.add('spin');
   refresh();
+});
+
+// ---------- 言語メニュー ----------
+const langMenu = $('#langMenu');
+const closeLangMenu = () => (langMenu.hidden = true);
+
+$('#langBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  langMenu.hidden = !langMenu.hidden;
+});
+langMenu.addEventListener('click', (e) => {
+  const item = e.target.closest('[data-lang]');
+  if (!item) return;
+  closeLangMenu();
+  setLangPref(item.dataset.lang);
+  render();
+  call('set_language', { language: item.dataset.lang });
+});
+document.addEventListener('click', (e) => {
+  if (!langMenu.hidden && !langMenu.contains(e.target)) closeLangMenu();
+});
+
+// ---------- 詳細設定 ----------
+const sheet = $('#settingsSheet');
+const setSheetOpen = (open) => {
+  sheet.classList.toggle('open', open);
+  sheet.setAttribute('aria-hidden', String(!open));
+};
+$('#settingsBtn').addEventListener('click', () => setSheetOpen(!sheet.classList.contains('open')));
+$('#settingsClose').addEventListener('click', () => setSheetOpen(false));
+sheet.querySelector('.sheet-backdrop').addEventListener('click', () => setSheetOpen(false));
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  closeLangMenu();
+  setSheetOpen(false);
 });
 
 $('#minBtn').addEventListener('click', () => appWindow.minimize());

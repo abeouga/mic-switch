@@ -14,7 +14,7 @@ A tiny Windows tray app that switches your default **microphone and speaker** in
 - Volume slider and mute button for the current device
 - Lives in the **system tray**; optional start with Windows
 - Frosted-glass UI using the Windows Acrylic backdrop
-- English and Japanese UI (follows the Windows display language)
+- English and Japanese UI — follows the Windows display language, or pick one from the globe menu
 - Small native binary (~3 MB), built with Rust + [Tauri 2](https://tauri.app/)
 
 ## Requirements
@@ -65,7 +65,9 @@ Options:
 |---|---|
 | Switch input / output list | Segmented control at the top |
 | Make a device the default | Click its card |
-| Auto-switch when plugged in | Click ★ on the card (and keep **Auto-switch** on) |
+| Auto-switch when plugged in | Click ★ on the card (and keep **Auto-switch** on in Settings) |
+| Change language | Globe button in the title bar → Automatic / 日本語 / English |
+| Auto-switch / Start with Windows | Settings button (sliders icon) in the title bar |
 | Mute / volume | Round button and slider at the top |
 | Hide the window | × button — the app keeps running in the tray |
 | Open again / quit | Left-click the tray icon / right-click → Quit |

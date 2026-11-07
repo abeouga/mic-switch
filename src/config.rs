@@ -20,11 +20,13 @@ pub struct Config {
     /// 自動切り替えの対象 (★) にしたデバイス名。USB ポートを変えても一致するよう ID ではなく名前で持つ。
     pub starred: Vec<String>,
     pub auto_switch: bool,
+    /// "auto" (Windows の表示言語に合わせる) / "ja" / "en"
+    pub language: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { starred: Vec::new(), auto_switch: true }
+        Self { starred: Vec::new(), auto_switch: true, language: "auto".into() }
     }
 }
 

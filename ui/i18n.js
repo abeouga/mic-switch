@@ -27,6 +27,10 @@ const MESSAGES = {
     starredToast: '★ Will switch automatically when plugged in',
     unstarredToast: 'Removed from auto-switch',
     switchedTo: (name) => `Switched to ${name}`,
+    language: 'Language',
+    langAuto: 'Automatic (Windows)',
+    settings: 'Settings',
+    close: 'Close',
   },
   ja: {
     minimize: '最小化',
@@ -55,15 +59,48 @@ const MESSAGES = {
     starredToast: '★ 接続すると自動で切り替わります',
     unstarredToast: '自動切り替えの対象から外しました',
     switchedTo: (name) => `${name} に切り替わりました`,
+    language: '言語',
+    langAuto: '自動（Windows に合わせる）',
+    settings: '詳細設定',
+    close: '閉じる',
   },
 };
 
-const LANG = (navigator.languages?.[0] || navigator.language || 'en').toLowerCase().startsWith('ja') ? 'ja' : 'en';
+// Language preference: 'auto' (follow Windows) | 'ja' | 'en'.
+// The source of truth is the app config; localStorage is only a cache so the first paint is correct.
+const systemLang = () =>
+  (navigator.languages?.[0] || navigator.language || 'en').toLowerCase().startsWith('ja') ? 'ja' : 'en';
+
+let langPref = (() => {
+  try {
+    return localStorage.getItem('lang') || 'auto';
+  } catch {
+    return 'auto';
+  }
+})();
+let LANG = langPref === 'auto' ? systemLang() : langPref;
+
 const t = (key, ...args) => {
   const value = MESSAGES[LANG][key] ?? MESSAGES.en[key];
   return typeof value === 'function' ? value(...args) : value;
 };
 
-document.documentElement.lang = LANG;
-document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
-document.querySelectorAll('[data-i18n-title]').forEach((el) => (el.title = t(el.dataset.i18nTitle)));
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => (el.title = t(el.dataset.i18nTitle)));
+}
+
+/** Returns true when the displayed language changed. */
+function setLangPref(pref) {
+  const before = LANG;
+  langPref = ['ja', 'en'].includes(pref) ? pref : 'auto';
+  LANG = langPref === 'auto' ? systemLang() : langPref;
+  try {
+    localStorage.setItem('lang', langPref);
+  } catch {}
+  applyI18n();
+  return before !== LANG;
+}
+
+applyI18n();
