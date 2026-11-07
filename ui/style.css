@@ -1,0 +1,233 @@
+/* 色は使わず、白の透明度とハイライトだけでガラスを表現する */
+:root {
+  --text: #ffffff;
+  --sub: rgba(255, 255, 255, 0.66);
+  --faint: rgba(255, 255, 255, 0.42);
+  --glass: rgba(255, 255, 255, 0.10);
+  --glass-hi: rgba(255, 255, 255, 0.20);
+  --stroke: rgba(255, 255, 255, 0.20);
+  --stroke-hi: rgba(255, 255, 255, 0.55);
+  --danger: rgba(255, 92, 112, 0.55);
+  --star: #ffd66b;
+  --spring: cubic-bezier(.3, 1.45, .5, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-family: "Segoe UI Variable Text", "Segoe UI", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* ウィンドウ背面は Acrylic (デスクトップがぼけて透ける)。薄い影だけ重ねて文字を読みやすくする */
+body { background: linear-gradient(180deg, rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.22)); }
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-shadow: inherit; }
+svg { display: block; }
+
+/* ---------- ガラス共通 ---------- */
+.glass {
+  position: relative;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--stroke);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+/* 縁に沿った光沢 */
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.20), transparent 38%);
+}
+
+/* ---------- タイトルバー ---------- */
+.titlebar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+.win-btns { display: flex; gap: 4px; }
+.win-btns button { width: 32px; height: 28px; border-radius: 9px; display: grid; place-items: center; transition: background 0.15s; }
+.win-btns button:hover { background: rgba(255, 255, 255, 0.14); }
+.win-btns .close:hover { background: var(--danger); }
+.win-btns svg { width: 11px; height: 11px; stroke: currentColor; stroke-width: 1.4; fill: none; stroke-linecap: round; }
+
+main {
+  height: calc(100% - 44px);
+  overflow-y: auto;
+  padding: 2px 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+main::-webkit-scrollbar { width: 6px; }
+main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+
+/* ---------- セグメントコントロール ---------- */
+.segmented {
+  position: relative; flex-shrink: 0;
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding: 4px; border-radius: 14px;
+  background: rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.10), 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+.seg-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
+  border-radius: 10px;
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 3px 10px rgba(0, 0, 0, 0.18);
+  transition: transform 0.38s var(--spring);
+}
+.segmented[data-tab="output"] .seg-thumb { transform: translateX(100%); }
+.segmented button {
+  position: relative; z-index: 1; height: 34px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-weight: 600; font-size: 13px; color: var(--sub); transition: color 0.2s;
+}
+.segmented[data-tab="input"] [data-tab="input"],
+.segmented[data-tab="output"] [data-tab="output"] { color: var(--text); }
+.segmented svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- 現在のデバイス ---------- */
+.hero { padding: 18px 18px 16px; border-radius: 24px; flex-shrink: 0; }
+.hero-top { display: flex; align-items: center; gap: 14px; }
+.hero-text { min-width: 0; }
+.hero-text small { color: var(--sub); font-size: 11.5px; letter-spacing: 0.06em; }
+.hero-text h1 { font-size: 19px; font-weight: 650; line-height: 1.3; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero-text p { color: var(--faint); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.orb {
+  flex-shrink: 0; width: 58px; height: 58px; border-radius: 50%;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.55), transparent 46%),
+    rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 -6px 14px rgba(255, 255, 255, 0.10), inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 6px 18px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s var(--spring), background 0.25s;
+}
+.orb:hover { transform: scale(1.06); }
+.orb:active { transform: scale(0.93); }
+.orb svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
+.orb svg .fill { fill: #fff; stroke: none; }
+.hero.muted .orb {
+  background: radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.45), transparent 46%), var(--danger);
+}
+.hero.empty .orb { opacity: 0.4; pointer-events: none; }
+
+.vol { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.vol svg { width: 17px; height: 17px; flex-shrink: 0; fill: none; stroke: var(--sub); stroke-width: 1.7; stroke-linejoin: round; }
+.vol span { width: 30px; text-align: right; font-variant-numeric: tabular-nums; color: var(--sub); font-size: 12.5px; }
+
+input[type="range"] { --p: 0%; flex: 1; height: 24px; appearance: none; background: transparent; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)) 0 / var(--p) 100% no-repeat, rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 24px; height: 24px; margin-top: -8px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 28%, #fff, rgba(255, 255, 255, 0.86) 48%, rgba(235, 238, 245, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3), inset 0 -2px 4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.18s var(--spring);
+}
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
+input[type="range"]:disabled { opacity: 0.4; cursor: default; }
+
+/* ---------- デバイス一覧 ---------- */
+.section-title { display: flex; align-items: center; justify-content: space-between; margin: 0 4px -6px; color: var(--sub); font-size: 12px; letter-spacing: 0.08em; }
+.icon-btn { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; transition: background 0.15s; }
+.icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.icon-btn svg { width: 15px; height: 15px; fill: none; stroke: var(--sub); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn.spin svg { animation: spin 0.6s ease; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+
+.dev {
+  display: grid; grid-template-columns: 38px 1fr 34px; align-items: center; gap: 12px;
+  padding: 10px 10px 10px 11px; border-radius: 17px; cursor: pointer;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
+  transition: transform 0.22s var(--spring), background 0.2s, border-color 0.2s;
+}
+.list.enter .dev { animation: rise 0.32s ease both; }
+.dev:hover { transform: translateY(-1px); background: linear-gradient(160deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.07)); border-color: rgba(255, 255, 255, 0.32); }
+.dev:active { transform: scale(0.985); }
+.dev.active {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.13));
+  border-color: var(--stroke-hi);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 8px 26px rgba(0, 0, 0, 0.2);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(5px); } }
+
+.dev-icon {
+  width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.dev-icon svg { width: 19px; height: 19px; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.dev-icon .fill { fill: #fff; stroke: none; }
+/* 選択中はアイコンを白く反転させる */
+.dev.active .dev-icon { background: rgba(255, 255, 255, 0.92); border-color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+.dev.active .dev-icon svg { stroke: #2a2c33; }
+.dev.active .dev-icon .fill { fill: #2a2c33; }
+
+.dev-text { min-width: 0; }
+.dev-text b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev-text small { display: flex; align-items: center; gap: 6px; color: var(--faint); font-size: 11.5px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev.active .dev-text small { color: var(--sub); }
+.dev.active .dev-text small::before { content: ""; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: #fff; box-shadow: 0 0 6px #fff; }
+
+.star { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; transition: background 0.15s, transform 0.2s var(--spring); }
+.star:hover { background: rgba(255, 255, 255, 0.14); }
+.star:active { transform: scale(0.8); }
+.star svg { width: 18px; height: 18px; fill: none; stroke: var(--faint); stroke-width: 1.6; stroke-linejoin: round; }
+.star.on svg { fill: var(--star); stroke: var(--star); filter: drop-shadow(0 0 5px rgba(255, 214, 107, 0.6)); }
+
+.empty { padding: 26px; text-align: center; color: var(--sub); }
+
+/* ---------- 設定 ---------- */
+.settings { padding: 2px 16px; border-radius: 20px; flex-shrink: 0; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; cursor: pointer; }
+.row + .row { border-top: 1px solid rgba(255, 255, 255, 0.12); }
+.row b { display: block; font-weight: 600; font-size: 13.5px; }
+.row small { display: block; color: var(--faint); font-size: 11.5px; margin-top: 2px; }
+
+.switch {
+  appearance: none; position: relative; flex-shrink: 0; width: 52px; height: 30px; border-radius: 15px; cursor: pointer;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 12px;
+  background: radial-gradient(circle at 36% 26%, #fff, rgba(255, 255, 255, 0.88) 50%, rgba(232, 235, 242, 0.8));
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  transition: left 0.34s var(--spring), width 0.18s;
+}
+.switch:active::after { width: 30px; }
+.switch:checked { background: rgba(255, 255, 255, 0.42); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.5); }
+.switch:checked::after { left: 25px; }
+.switch:checked:active::after { left: 19px; }
+
+/* ---------- トースト ---------- */
+#toast {
+  position: fixed; left: 50%; bottom: 18px; max-width: calc(100% - 40px);
+  padding: 10px 18px; border-radius: 999px; font-size: 12.5px;
+  background: rgba(40, 42, 50, 0.72); backdrop-filter: blur(20px);
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  transition: transform 0.35s var(--spring), opacity 0.25s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#toast.show { transform: translate(-50%, 0); opacity: 1; }
+#toast.error { background: rgba(140, 40, 60, 0.8); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
