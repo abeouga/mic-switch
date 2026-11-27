@@ -1,4 +1,3 @@
-/* 色は使わず、白の透明度とハイライトだけでガラスを表現する */
 :root {
   --text: #ffffff;
   --sub: rgba(255, 255, 255, 0.66);
@@ -26,13 +25,11 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-/* ウィンドウ背面は Acrylic (デスクトップがぼけて透ける)。薄い影だけ重ねて文字を読みやすくする */
 body { background: linear-gradient(180deg, rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.22)); }
 
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-shadow: inherit; }
 svg { display: block; }
 
-/* ---------- ガラス共通 ---------- */
 .glass {
   position: relative;
   border-radius: 20px;
@@ -44,13 +41,11 @@ svg { display: block; }
     0 8px 24px rgba(0, 0, 0, 0.16);
   overflow: hidden;
 }
-/* 縁に沿った光沢 */
 .glass::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   background: linear-gradient(170deg, rgba(255, 255, 255, 0.20), transparent 38%);
 }
 
-/* ---------- タイトルバー ---------- */
 .titlebar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
 .win-btns { display: flex; gap: 4px; }
@@ -68,7 +63,6 @@ main {
 main::-webkit-scrollbar { width: 6px; }
 main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
 
-/* ---------- セグメントコントロール ---------- */
 .segmented {
   position: relative; flex-shrink: 0;
   display: grid; grid-template-columns: 1fr 1fr;
@@ -94,7 +88,6 @@ main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-rad
 .segmented[data-tab="output"] [data-tab="output"] { color: var(--text); }
 .segmented svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---------- 現在のデバイス ---------- */
 .hero { padding: 18px 18px 16px; border-radius: 24px; flex-shrink: 0; }
 .hero-top { display: flex; align-items: center; gap: 14px; }
 .hero-text { min-width: 0; }
@@ -141,7 +134,6 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
 input[type="range"]:disabled { opacity: 0.4; cursor: default; }
 
-/* ---------- デバイス一覧 ---------- */
 .section-title { display: flex; align-items: center; justify-content: space-between; margin: 0 4px -6px; color: var(--sub); font-size: 12px; letter-spacing: 0.08em; }
 .icon-btn { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; transition: background 0.15s; }
 .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
@@ -173,7 +165,6 @@ input[type="range"]:disabled { opacity: 0.4; cursor: default; }
 }
 .dev-icon svg { width: 19px; height: 19px; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .dev-icon .fill { fill: #fff; stroke: none; }
-/* 選択中はアイコンを白く反転させる */
 .dev.active .dev-icon { background: rgba(255, 255, 255, 0.92); border-color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
 .dev.active .dev-icon svg { stroke: #2a2c33; }
 .dev.active .dev-icon .fill { fill: #2a2c33; }
@@ -192,7 +183,6 @@ input[type="range"]:disabled { opacity: 0.4; cursor: default; }
 
 .empty { padding: 26px; text-align: center; color: var(--sub); }
 
-/* ---------- 設定 ---------- */
 .settings { padding: 2px 16px; border-radius: 20px; flex-shrink: 0; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; cursor: pointer; }
 .row + .row { border-top: 1px solid rgba(255, 255, 255, 0.12); }
@@ -216,12 +206,10 @@ input[type="range"]:disabled { opacity: 0.4; cursor: default; }
 .switch:checked::after { left: 25px; }
 .switch:checked:active::after { left: 19px; }
 
-/* ---------- タイトルバーのツールボタン ---------- */
 .win-btns { align-items: center; }
 .win-btns .tool svg { width: 15px; height: 15px; stroke-width: 1.7; stroke-linejoin: round; }
 .win-btns .sep { width: 1px; height: 16px; margin: 0 4px; background: rgba(255, 255, 255, 0.2); }
 
-/* ---------- 言語メニュー (ポップオーバー) ---------- */
 .menu {
   position: fixed; top: 40px; right: 78px; z-index: 30; min-width: 210px;
   padding: 6px; border-radius: 14px;
@@ -242,7 +230,6 @@ input[type="range"]:disabled { opacity: 0.4; cursor: default; }
 .menu [aria-checked="true"] svg { opacity: 1; }
 @keyframes pop { from { opacity: 0; transform: scale(0.92) translateY(-4px); } }
 
-/* ---------- 詳細設定シート ---------- */
 .sheet { position: fixed; inset: 44px 0 0; z-index: 20; pointer-events: none; }
 .sheet-backdrop {
   position: absolute; inset: 0; background: rgba(0, 0, 0, 0.28); backdrop-filter: blur(6px);
@@ -265,7 +252,6 @@ input[type="range"]:disabled { opacity: 0.4; cursor: default; }
 .sheet-head b { font-size: 15px; font-weight: 650; }
 .sheet-head svg { width: 11px; height: 11px; stroke: var(--sub); stroke-width: 1.6; }
 
-/* ---------- トースト ---------- */
 #toast {
   position: fixed; z-index: 40; left: 50%; bottom: 18px; max-width: calc(100% - 40px);
   padding: 10px 18px; border-radius: 999px; font-size: 12.5px;

@@ -1,4 +1,3 @@
-// UI strings. Japanese when the Windows display language is Japanese, English otherwise.
 const MESSAGES = {
   en: {
     minimize: 'Minimize',
@@ -66,8 +65,6 @@ const MESSAGES = {
   },
 };
 
-// Language preference: 'auto' (follow Windows) | 'ja' | 'en'.
-// The source of truth is the app config; localStorage is only a cache so the first paint is correct.
 const systemLang = () =>
   (navigator.languages?.[0] || navigator.language || 'en').toLowerCase().startsWith('ja') ? 'ja' : 'en';
 
@@ -91,7 +88,6 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-title]').forEach((el) => (el.title = t(el.dataset.i18nTitle)));
 }
 
-/** Returns true when the displayed language changed. */
 function setLangPref(pref) {
   const before = LANG;
   langPref = ['ja', 'en'].includes(pref) ? pref : 'auto';

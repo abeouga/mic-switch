@@ -12,7 +12,6 @@ const ICONS = {
   star: '<svg viewBox="0 0 24 24"><path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.9z"/></svg>',
 };
 
-// 言語を切り替えられるよう、文言は毎回 t() で引く
 const tabMeta = (kind) =>
   kind === 'output'
     ? { label: t('currentOutput'), listTitle: t('outputDevices'), icon: ICONS.speaker, iconOff: ICONS.speakerOff, empty: t('noOutput') }
@@ -36,7 +35,6 @@ function loadTab() {
 const escapeHtml = (s) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-// "マイク (Blue Yeti)" → { main: "Blue Yeti", sub: "マイク" }
 function splitName(name) {
   const m = name.match(/^(.*?)\s*\((.+)\)$/);
   return m ? { main: m[2], sub: m[1] } : { main: name, sub: '' };
@@ -62,7 +60,6 @@ function setVolumeUi(level) {
 const currentDevice = () => state?.[tab].find((d) => d.isDefault);
 
 function notifyExternalChanges(next) {
-  // 自動切り替えなど、外部で既定が変わったら知らせる
   for (const kind of ['input', 'output']) {
     const current = next[kind].find((d) => d.isDefault);
     const prev = lastDefaultIds[kind];
@@ -96,7 +93,6 @@ function render() {
   $('#vol').disabled = !current;
   if (!draggingVolume) setVolumeUi(current?.volume ?? 0);
 
-  // 同じ内容なら DOM を触らない (フォーカスのたびに作り直すとちらつく)
   const listHtml =
     devices
       .map((d, i) => {
@@ -128,7 +124,6 @@ async function call(command, args) {
     if (result) {
       notifyExternalChanges(result);
       state = result;
-      // 設定ファイル側の言語が正。キャッシュ (localStorage) と違えば合わせる
       if (result.language !== langPref) setLangPref(result.language);
       render();
     }
@@ -140,7 +135,6 @@ async function call(command, args) {
 
 const refresh = () => call('get_state');
 
-// ---------- イベント ----------
 $('#tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn || btn.dataset.tab === tab) return;
@@ -152,7 +146,6 @@ $('#tabs').addEventListener('click', (e) => {
   render();
 });
 
-// 出現アニメーションはタブ切り替え時と起動時だけ
 function playEnter() {
   const list = $('#list');
   list.classList.remove('enter');
@@ -205,7 +198,6 @@ $('#refreshBtn').addEventListener('click', (e) => {
   refresh();
 });
 
-// ---------- 言語メニュー ----------
 const langMenu = $('#langMenu');
 const closeLangMenu = () => (langMenu.hidden = true);
 
@@ -225,7 +217,6 @@ document.addEventListener('click', (e) => {
   if (!langMenu.hidden && !langMenu.contains(e.target)) closeLangMenu();
 });
 
-// ---------- 詳細設定 ----------
 const sheet = $('#settingsSheet');
 const setSheetOpen = (open) => {
   sheet.classList.toggle('open', open);

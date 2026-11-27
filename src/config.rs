@@ -1,5 +1,3 @@
-//! 設定ファイルとスタートアップ登録。C ドライブを汚さないよう exe の隣の data フォルダに保存する。
-
 use std::{
     fs,
     os::windows::process::CommandExt,
@@ -17,10 +15,8 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// 自動切り替えの対象 (★) にしたデバイス名。USB ポートを変えても一致するよう ID ではなく名前で持つ。
     pub starred: Vec<String>,
     pub auto_switch: bool,
-    /// "auto" (Windows の表示言語に合わせる) / "ja" / "en"
     pub language: String,
 }
 
@@ -30,7 +26,6 @@ impl Default for Config {
     }
 }
 
-/// exe の隣に書き込めるならそこ (ポータブル運用)、書き込めなければ %LOCALAPPDATA%\MicSwitch。
 pub fn data_dir() -> PathBuf {
     static DIR: OnceLock<PathBuf> = OnceLock::new();
     DIR.get_or_init(|| {

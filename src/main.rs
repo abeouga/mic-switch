@@ -50,7 +50,6 @@ struct Snapshot {
     language: String,
 }
 
-/// 言語設定。0 = 自動 (Windows の表示言語), 1 = 日本語, 2 = 英語
 static LANGUAGE: AtomicU8 = AtomicU8::new(0);
 
 fn set_language_mode(language: &str) {
@@ -208,7 +207,6 @@ fn tray_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     Menu::with_items(app, &[&open, &quit])
 }
 
-/// 言語を変えたときにトレイのメニューとツールチップを作り直す
 fn refresh_tray(app: &AppHandle) {
     audio::com_init();
     if let (Some(tray), Ok(menu)) = (app.tray_by_id("main"), tray_menu(app)) {
@@ -219,7 +217,6 @@ fn refresh_tray(app: &AppHandle) {
     }
 }
 
-/// デバイスの抜き差しを監視し、★ を付けたデバイスが新しく接続されたら既定に切り替える。
 fn spawn_watcher(app: AppHandle) {
     thread::spawn(move || {
         audio::com_init();
@@ -243,7 +240,6 @@ fn spawn_watcher(app: AppHandle) {
                 }
                 let defaults: Vec<Option<String>> = Flow::ALL.into_iter().map(audio::default_id).collect();
                 if known.as_ref() != Some(&ids) || defaults != last_defaults {
-                    // 自動切り替え直後は一覧の is_default が古いので取り直す
                     let inputs = audio::list(Flow::Input).unwrap_or(inputs);
                     let outputs = audio::list(Flow::Output).unwrap_or(outputs);
                     update_tray(&app, &inputs, &outputs);
@@ -317,7 +313,6 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            // × ボタンでは終了せずトレイに隠す (終了はトレイメニューから)
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
                 let _ = window.hide();
