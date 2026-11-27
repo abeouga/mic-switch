@@ -59,11 +59,11 @@ function setVolumeUi(level) {
 
 const currentDevice = () => state?.[tab].find((d) => d.isDefault);
 
-function notifyExternalChanges(next) {
+function notifyExternalChanges(next, switchedByUser) {
   for (const kind of ['input', 'output']) {
     const current = next[kind].find((d) => d.isDefault);
     const prev = lastDefaultIds[kind];
-    if (current && prev && current.id !== prev) toast(t('switchedTo', splitName(current.name).main));
+    if (current && prev && current.id !== prev && kind !== switchedByUser) toast(t('switchedTo', splitName(current.name).main));
     lastDefaultIds[kind] = current?.id ?? null;
   }
 }
@@ -118,11 +118,11 @@ function render() {
   document.querySelectorAll('#langMenu [data-lang]').forEach((el) => el.setAttribute('aria-checked', String(el.dataset.lang === langPref)));
 }
 
-async function call(command, args) {
+async function call(command, args, switchedByUser = null) {
   try {
     const result = await invoke(command, args);
     if (result) {
-      notifyExternalChanges(result);
+      notifyExternalChanges(result, switchedByUser);
       state = result;
       if (result.language !== langPref) setLangPref(result.language);
       render();
@@ -164,7 +164,7 @@ $('#list').addEventListener('click', async (e) => {
     return;
   }
   const card = e.target.closest('.dev');
-  if (card && !card.classList.contains('active')) await call('set_default', { id: card.dataset.id });
+  if (card && !card.classList.contains('active')) await call('set_default', { id: card.dataset.id }, tab);
 });
 
 $('#muteBtn').addEventListener('click', () => {
