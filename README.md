@@ -8,7 +8,11 @@
 
 </div>
 
+<div align="center">
+
 A Windows tray app that switches your **microphone and speaker** in one click.<br>No more opening Sound settings every time you plug in a USB device.
+
+</div>
 
 <p align="center"><img src="docs/screenshot.jpg" width="320" alt="Mic Switch screenshot"></p>
 
