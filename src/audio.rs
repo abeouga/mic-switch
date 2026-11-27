@@ -1,6 +1,3 @@
-//! Windows Core Audio のラッパー: 入力デバイスの列挙・既定デバイスの切り替え・音量操作。
-
-// COM インターフェースのメソッド名は Windows の命名 (PascalCase) に合わせる
 #![allow(non_snake_case)]
 
 use std::ffi::c_void;
@@ -18,8 +15,6 @@ use windows::Win32::System::Com::{
 
 pub type Result<T> = windows::core::Result<T>;
 
-// 既定デバイスの変更には公開 API が無いため、Windows の設定画面も使っている
-// 非公開インターフェース IPolicyConfig を使う。vtable の順序が重要なので未使用メソッドも定義する。
 #[interface("f8679f50-850a-41cf-9c72-430f290290c8")]
 unsafe trait IPolicyConfig: IUnknown {
     fn GetMixFormat(&self, id: PCWSTR, format: *mut *mut c_void) -> HRESULT;
@@ -38,7 +33,6 @@ unsafe trait IPolicyConfig: IUnknown {
 
 const CLSID_POLICY_CONFIG_CLIENT: GUID = GUID::from_u128(0x870af99c_171d_4f9e_af0d_e63df40c2bc9);
 
-/// 入力 (マイク) か出力 (スピーカー・ヘッドホン) か
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Flow {
     Input,
@@ -63,7 +57,6 @@ pub struct Device {
     pub is_default: bool,
 }
 
-/// 呼び出しスレッドで COM を初期化する。既に初期化済み (STA 含む) なら何もしない。
 pub fn com_init() {
     unsafe {
         let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
@@ -105,7 +98,6 @@ pub fn default_id(flow: Flow) -> Option<String> {
     }
 }
 
-/// 有効なデバイスをすべて返す。
 pub fn list(flow: Flow) -> Result<Vec<Device>> {
     let default = default_id(flow);
     unsafe {
@@ -124,7 +116,6 @@ pub fn list(flow: Flow) -> Result<Vec<Device>> {
     }
 }
 
-/// 通常・マルチメディア・通信 (Discord, Teams など) の全ロールで既定にする。
 pub fn set_default(id: &str) -> Result<()> {
     let id = wide(id);
     unsafe {
@@ -141,7 +132,6 @@ fn endpoint_volume(id: &str) -> Result<IAudioEndpointVolume> {
     unsafe { enumerator()?.GetDevice(PCWSTR(id.as_ptr()))?.Activate(CLSCTX_ALL, None) }
 }
 
-/// (音量 0.0〜1.0, ミュート中か)
 pub fn volume(id: &str) -> Result<(f32, bool)> {
     unsafe {
         let endpoint = endpoint_volume(id)?;

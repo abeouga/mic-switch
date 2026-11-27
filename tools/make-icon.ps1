@@ -26,13 +26,11 @@ function New-IconPng([int]$size) {
     $grad = New-Object System.Drawing.Drawing2D.LinearGradientBrush ([System.Drawing.PointF]::new(8, 8)), ([System.Drawing.PointF]::new(248, 248)), ([System.Drawing.Color]::FromArgb(255, 86, 128, 255)), ([System.Drawing.Color]::FromArgb(255, 186, 96, 255))
     $g.FillPath($grad, $bg)
 
-    # ガラスの光沢
     $shine = New-RoundRect 18 14 220 110 52
     $shineBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush ([System.Drawing.PointF]::new(0, 14)), ([System.Drawing.PointF]::new(0, 124)), ([System.Drawing.Color]::FromArgb(110, 255, 255, 255)), ([System.Drawing.Color]::FromArgb(0, 255, 255, 255))
     $g.FillPath($shineBrush, $shine)
     $g.DrawPath((New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(120, 255, 255, 255)), 3), $bg)
 
-    # マイク
     $white = [System.Drawing.Brushes]::White
     $g.FillPath($white, (New-RoundRect 100 48 56 108 28))
     $pen = New-Object System.Drawing.Pen ([System.Drawing.Color]::White), 15
@@ -50,7 +48,6 @@ function New-IconPng([int]$size) {
 
 [IO.File]::WriteAllBytes((Join-Path $outDir 'icon.png'), (New-IconPng 256))
 
-# PNG 埋め込み形式の ICO を書き出す
 $sizes = 16, 24, 32, 48, 64, 256
 $images = $sizes | ForEach-Object { , (New-IconPng $_) }
 $ms = New-Object IO.MemoryStream

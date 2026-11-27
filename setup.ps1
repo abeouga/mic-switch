@@ -1,36 +1,3 @@
-<#
-.SYNOPSIS
-    Builds Mic Switch from source and installs it for the current user.
-
-.DESCRIPTION
-    1. Installs Rust (rustup) if it is missing.
-    2. Checks for the MSVC C++ build tools and offers to install them with winget.
-    3. Builds the release binary.
-    4. Copies MicSwitch.exe to the install folder and creates Desktop / Start menu shortcuts.
-
-    No administrator rights are needed.
-
-.PARAMETER InstallDir
-    Where MicSwitch.exe is installed. Default: %LOCALAPPDATA%\Programs\MicSwitch
-    If this folder is writable, settings are stored next to the exe in a "data" folder.
-
-.PARAMETER RustDir
-    Install Rust under this folder instead of %USERPROFILE% (useful when C: is short on space).
-    Sets RUSTUP_HOME and CARGO_HOME for the current user.
-
-.PARAMETER NoShortcut
-    Do not create Desktop / Start menu shortcuts.
-
-.PARAMETER Uninstall
-    Remove the installed app, its shortcuts, its settings, and the "Start with Windows" entry.
-
-.EXAMPLE
-    .\setup.ps1
-.EXAMPLE
-    .\setup.ps1 -InstallDir D:\Apps\MicSwitch -RustDir D:\dev
-.EXAMPLE
-    .\setup.ps1 -Uninstall
-#>
 [CmdletBinding()]
 param(
     [string]$InstallDir = (Join-Path $env:LOCALAPPDATA 'Programs\MicSwitch'),
@@ -62,7 +29,6 @@ function Stop-App {
     Start-Sleep -Milliseconds 500
 }
 
-# ---------------------------------------------------------------- uninstall
 if ($Uninstall) {
     Write-Step "Uninstalling $AppName"
     Stop-App
@@ -75,7 +41,6 @@ if ($Uninstall) {
     return
 }
 
-# ---------------------------------------------------------------- checks
 if ([Environment]::OSVersion.Version.Build -lt 17763) {
     throw "$AppName needs Windows 10 version 1809 or later."
 }
@@ -90,7 +55,6 @@ if (-not ($webView2Keys | Where-Object { Test-Path $_ })) {
     Write-Note 'https://developer.microsoft.com/microsoft-edge/webview2/'
 }
 
-# ---------------------------------------------------------------- Rust
 Write-Step 'Checking Rust'
 if ($RustDir) {
     $env:RUSTUP_HOME = Join-Path $RustDir 'rustup'
@@ -113,7 +77,6 @@ if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
 }
 Write-Ok (& cargo --version)
 
-# ---------------------------------------------------------------- MSVC build tools
 Write-Step 'Checking the C++ build tools'
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
 $hasMsvc = (Test-Path $vswhere) -and
@@ -133,7 +96,6 @@ if (-not $hasMsvc) {
 }
 Write-Ok 'Found'
 
-# ---------------------------------------------------------------- build
 Write-Step 'Building (the first build downloads dependencies and takes a few minutes)'
 Push-Location $RepoRoot
 try {
@@ -143,7 +105,6 @@ try {
     Pop-Location
 }
 
-# ---------------------------------------------------------------- install
 Write-Step "Installing to $InstallDir"
 Stop-App
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
@@ -151,7 +112,6 @@ $exe = Join-Path $InstallDir $ExeName
 Copy-Item (Join-Path $RepoRoot 'target\release\mic-switch.exe') $exe -Force
 Write-Ok $exe
 
-# Keep "Start with Windows" pointing at the new location
 if (Get-ItemProperty -Path $RunKey -Name $RunValue -ErrorAction SilentlyContinue) {
     Set-ItemProperty -Path $RunKey -Name $RunValue -Value "`"$exe`" --hidden"
 }
