@@ -1,37 +1,44 @@
-# Mic Switch
+<div align="center">
+<h2>Mic Switch</h2>
+</div>
+
+<div align="center">
 
 **English** | [日本語](README.ja.md)
 
-A tiny Windows tray app that switches your default **microphone and speaker** in one click — no more digging through Sound settings every time you plug in a USB mic.
+</div>
+
+A Windows tray app that switches your **microphone and speaker** in one click.<br>No more opening Sound settings every time you plug in a USB device.
 
 <p align="center"><img src="docs/screenshot.jpg" width="320" alt="Mic Switch screenshot"></p>
 
-## Features
+## Overview
 
-- **One-click switching** for input (microphones) and output (speakers / headphones), selected with a segmented control
-- Switches **all roles at once** — regular apps *and* communication apps such as Discord, Teams and Zoom
-- **Auto-switch**: star (★) a device and it becomes the default as soon as it is plugged in. Devices are matched by name, so changing USB ports still works
-- Volume slider and mute button for the current device
-- Lives in the **system tray**; optional start with Windows
-- Frosted-glass UI using the Windows Acrylic backdrop
-- English and Japanese UI — follows the Windows display language, or pick one from the globe menu
-- Small native binary (~3 MB), built with Rust + [Tauri 2](https://tauri.app/)
+- Switches your audio input and output.
+- **Also switches the default for communication apps** such as Discord, Teams and Zoom.
+- **Auto-switch**: star (★) a device and Windows switches to it as soon as it is plugged in.
+- **Lives in the system tray**, and can start automatically with Windows
+- English and Japanese UI (follows the Windows display language, or pick one from the globe menu)
+- A small native app (~3 MB) built with Rust and [Tauri 2](https://tauri.app/)
+<br>
 
 ## Requirements
 
-- Windows 10 version 1809 or later / Windows 11 (x64)
+- Windows 10 version 1809 or later, or Windows 11 (x64)
 - [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (preinstalled on Windows 11)
+<br>
 
 ## Install
 
-### Option A: download (no build tools needed)
+### Option A: Download
 
 1. Download `MicSwitch.exe` from the [Releases](../../releases) page.
 2. Put it anywhere you like and run it.
 
-The exe is not code-signed, so Windows SmartScreen may warn you the first time. Click **More info → Run anyway**.
-
-### Option B: build from source
+>The exe is not code-signed, so Windows shows a warning the first time you run it.
+<br>
+<details>
+<summary><b>Option B: Build from source</b></summary>
 
 ```powershell
 git clone <this repository>
@@ -39,25 +46,27 @@ cd mic-switch
 .\setup.cmd
 ```
 
-`setup.cmd` (or `setup.ps1`) does everything for the current user, without administrator rights:
-
-1. Installs Rust via rustup if it is missing
-2. Checks for the MSVC C++ build tools and offers to install them with `winget`
-3. Builds the release binary
-4. Installs `MicSwitch.exe` to `%LOCALAPPDATA%\Programs\MicSwitch` and adds Desktop / Start menu shortcuts
+>`setup.cmd` is a wrapper around `setup.ps1`.<br>
+>It does the following in one go, without administrator rights:
+>1. Installs Rust via rustup if it is missing
+>2. Checks for the MSVC C++ build tools and offers to install them with `winget` if they are missing
+>3. Builds the release binary
+>4. Puts `MicSwitch.exe` in `%LOCALAPPDATA%\Programs\MicSwitch` and creates Desktop and Start menu shortcuts
 
 Options:
 
 | Option | Description |
 |---|---|
 | `-InstallDir <path>` | Install somewhere else (e.g. `D:\Apps\MicSwitch`) |
-| `-RustDir <path>` | Install Rust under this folder instead of `%USERPROFILE%` (handy when C: is short on space) |
-| `-NoShortcut` | Skip creating shortcuts |
-| `-Uninstall` | Remove the app, its shortcuts, its settings and the startup entry |
+| `-RustDir <path>` | Install Rust in this folder instead of `%USERPROFILE%` |
+| `-NoShortcut` | Do not create shortcuts |
+| `-Uninstall` | Remove everything related to Mic Switch, except Rust and the build tools |
 
 ```powershell
 .\setup.cmd -InstallDir D:\Apps\MicSwitch -RustDir D:\dev
 ```
+
+</details>
 
 ## Usage
 
