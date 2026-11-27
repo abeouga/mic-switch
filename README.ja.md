@@ -8,7 +8,11 @@
 
 </div>
 
+<div align="center">
+
 **マイクとスピーカー**をワンクリックで切り替える、Windows 用の常駐アプリです。<br>USBを挿すたびにサウンド設定を開く手間がなくなります。
+
+</div>
 
 <p align="center"><img src="docs/screenshot.jpg" width="320" alt="Mic Switch のスクリーンショット"></p>
 
