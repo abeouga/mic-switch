@@ -174,6 +174,7 @@ $('#muteBtn').addEventListener('click', () => {
 
 const slider = $('#vol');
 slider.addEventListener('pointerdown', () => (draggingVolume = true));
+for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, () => (draggingVolume = false));
 slider.addEventListener('change', () => {
   draggingVolume = false;
   refresh();
